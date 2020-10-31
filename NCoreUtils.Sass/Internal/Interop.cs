@@ -286,6 +286,10 @@ namespace NCoreUtils.Sass.Internal
         public unsafe static List<string> ReadUtf8StringList(IntPtr ptr)
         {
             var list = new List<string>();
+            if (IntPtr.Zero == ptr)
+            {
+                return list;
+            }
             for (var p = (byte**)ptr; *p != (byte*)0; ++p)
             {
                 var line = ReadOptionalUtf8String((IntPtr)(*p));
