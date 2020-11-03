@@ -58,8 +58,9 @@ namespace NCoreUtils.Sass.Internal
             => ch == '/' || ch == '\\';
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static IReadOnlyList<(int Position, int Length)> GetSegments(string source)
+        private static (IReadOnlyList<(int Position, int Length)> segments, bool isAbsolute) GetSegments(string source)
         {
+            var isAbsolute = false;
             var input = source.AsSpan();
             var counter = 0;
             foreach (var ch in input)
@@ -71,10 +72,20 @@ namespace NCoreUtils.Sass.Internal
             }
             var segments = new List<(int Position, int Length)>(counter + 1);
             var s = 0;
+            bool first = true;
             for (var i = 0; i < input.Length; ++i)
             {
                 var ch = input[i];
-                if (IsDelimiter(ch))
+                if (first)
+                {
+                    first = false;
+                    if (IsDelimiter(ch))
+                    {
+                        isAbsolute = true;
+                        s = i + 1;
+                    }
+                }
+                else if (IsDelimiter(ch))
                 {
                     // skip empty segments
                     if (s != i)
@@ -89,12 +100,14 @@ namespace NCoreUtils.Sass.Internal
             {
                 segments.Add((s, input.Length - s));
             }
-            return segments;
+            return (segments, isAbsolute);
         }
 
         private readonly string _source;
 
         private readonly IReadOnlyList<(int Position, int Length)> _segmentData;
+
+        private readonly bool _isAbsolutePath;
 
         public bool IsEmpty
         {
@@ -132,7 +145,7 @@ namespace NCoreUtils.Sass.Internal
         public GenericPath(string source)
         {
             _source = source ?? throw new ArgumentNullException(nameof(source));
-            _segmentData = GetSegments(source);
+            (_segmentData, _isAbsolutePath) = GetSegments(source);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -194,7 +207,7 @@ namespace NCoreUtils.Sass.Internal
             {
                 return string.Empty;
             }
-            var dataSize = 0;
+            var dataSize = _isAbsolutePath ? 1 : 0;
             var counter = 0;
             foreach (var (_, len) in _segmentData)
             {
@@ -214,6 +227,10 @@ namespace NCoreUtils.Sass.Internal
                     if (first)
                     {
                         first = false;
+                        if (_isAbsolutePath)
+                        {
+                            builder.Append(separator);
+                        }
                     }
                     else
                     {
@@ -233,16 +250,20 @@ namespace NCoreUtils.Sass.Internal
                     if (first)
                     {
                         first = false;
+                        if (_isAbsolutePath)
+                        {
+                            builder.Append(separator);
+                        }
                     }
                     else
                     {
                         builder.Append(separator);
                     }
-                    #if NETSTANDARD2_1
+#if NETSTANDARD2_1
                     builder.Append(data.Slice(pos, len));
-                    #else
+#else
                     builder.Append(data.Slice(pos, len).ToString());
-                    #endif
+#endif
                 }
                 return builder.ToString();
             }
