@@ -151,7 +151,7 @@ namespace NCoreUtils.Sass.Internal
             return new InteropSassCompiler(compilerHandle, true);
         }
 
-        public IReadOnlyList<GenericPath> GetIncludedFiles()
+        public IReadOnlyList<FileInfoProvider> GetIncludedFiles()
             => Interop.ReadUtf8FileInfoProviderList(Interop.sass_context_get_included_files(handle));
 
         public abstract int Compile();

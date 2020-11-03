@@ -301,15 +301,15 @@ namespace NCoreUtils.Sass.Internal
             return list;
         }
 
-        public unsafe static List<GenericPath> ReadUtf8FileInfoProviderList(IntPtr ptr)
+        public unsafe static List<FileInfoProvider> ReadUtf8FileInfoProviderList(IntPtr ptr)
         {
-            var list = new List<GenericPath>();
+            var list = new List<FileInfoProvider>();
             for (var p = (byte**)ptr; *p != (byte*)0; ++p)
             {
                 var line = ReadOptionalUtf8String((IntPtr)(*p));
                 if (!(line is null))
                 {
-                    list.Add(new GenericPath(line));
+                    list.Add(new FileInfoProvider(line));
                 }
             }
             return list;
