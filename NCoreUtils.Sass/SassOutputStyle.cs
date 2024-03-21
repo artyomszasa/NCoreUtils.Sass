@@ -1,9 +1,9 @@
-namespace NCoreUtils.Sass
+namespace NCoreUtils.Sass;
+
+public enum SassOutputStyle
 {
-    public enum SassOutputStyle {
-        Nested,
-        Expanded,
-        Compact,
-        Compressed
-    };
-}
+    Nested,
+    Expanded,
+    Compact,
+    Compressed
+};

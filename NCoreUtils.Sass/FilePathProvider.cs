@@ -2,22 +2,16 @@
 using System.IO;
 using System.Text.RegularExpressions;
 
-namespace NCoreUtils.Sass
+namespace NCoreUtils.Sass;
+
+public class FileInfoProvider(string path)
 {
-    public class FileInfoProvider
+    private static readonly Regex _delimeter = new("[\\/]", RegexOptions.Compiled);
+
+    public IReadOnlyList<string> Segments { get; } = _delimeter.Split(path);
+
+    public override string ToString()
     {
-        private static readonly Regex _delimeter = new Regex("[\\/]", RegexOptions.Compiled);
-
-        public IReadOnlyList<string> Segments { get; }
-
-        public FileInfoProvider(string path)
-        {
-            Segments = _delimeter.Split(path);
-        }
-
-        public override string ToString()
-        {
-            return string.Join(Path.DirectorySeparatorChar.ToString(), Segments);
-        }
+        return string.Join(Path.DirectorySeparatorChar.ToString(), Segments);
     }
 }

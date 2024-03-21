@@ -1,11 +1,10 @@
 using System;
 
-namespace NCoreUtils.Sass.Internal
-{
-    public interface IInteropSassOptionsMemory : IDisposable
-    {
-        IntPtr PinIndentString(string input);
+namespace NCoreUtils.Sass.Internal;
 
-        IntPtr PinLineFeedString(string input);
-    }
+public interface IInteropSassOptionsMemory : IDisposable
+{
+    IntPtr PinIndentString(string input);
+
+    IntPtr PinLineFeedString(string input);
 }

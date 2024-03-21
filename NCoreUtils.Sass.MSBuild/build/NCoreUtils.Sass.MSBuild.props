@@ -1,0 +1,6 @@
+<Project TreatAsLocalProperty="TaskFolder;TaskAssembly">
+  <PropertyGroup>
+    <TaskAssembly>$(MSBuildThisFileDirectory)..\tasks\netstandard2.0\NCoreUtils.Sass.MSBuild.dll</TaskAssembly>
+  </PropertyGroup>
+  <UsingTask TaskName="NCoreUtils.SassTask" AssemblyFile="$(TaskAssembly)" />
+</Project>
