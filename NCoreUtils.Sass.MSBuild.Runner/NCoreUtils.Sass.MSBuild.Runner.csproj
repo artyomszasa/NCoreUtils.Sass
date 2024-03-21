@@ -7,23 +7,21 @@
     <RootNamespace>NCoreUtils.Sass</RootNamespace>
     <PublishAot>true</PublishAot>
     <!-- <CppCompilerAndLinker>g++</CppCompilerAndLinker> -->
+    <LibSassStaticLibPath Condition=" '$(LibSassStaticLibPath)' == '' And  $(RuntimeIdentifier.StartsWith('linux'))">/usr/lib/x86_64-linux-gnu/libsass.a</LibSassStaticLibPath>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\NCoreUtils.Sass\NCoreUtils.Sass.csproj" />
   </ItemGroup>
   <ItemGroup>
     <DirectPInvoke Include="sass" />
+    <NativeLibrary Include="$(LibSassStaticLibPath)" />
   </ItemGroup>
+  <!--
   <ItemGroup Condition="$(RuntimeIdentifier.StartsWith('win'))">
     <NativeLibrary Include="sass.lib"  />
   </ItemGroup>
-  <!--
-  <ItemGroup Condition="$(RuntimeIdentifier.StartsWith('linux'))">
-    <NativeLibrary Include="/usr/lib/x86_64-linux-gnu/libsass.so" Condition="Exists('/usr/lib/x86_64-linux-gnu/libsass.so')" />
-  </ItemGroup>
   -->
   <ItemGroup Condition="$(RuntimeIdentifier.StartsWith('linux'))">
-    <NativeLibrary Include="/usr/lib/x86_64-linux-gnu/libsass.a" Condition="Exists('/usr/lib/x86_64-linux-gnu/libsass.a')" />
     <!--<LinkerArg Include="-lstdc++" />-->
     <ExtraLinkerArg Include="-lstdc++" />
   </ItemGroup>
