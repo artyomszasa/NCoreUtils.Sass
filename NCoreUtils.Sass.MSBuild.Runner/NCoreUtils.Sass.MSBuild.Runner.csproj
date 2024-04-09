@@ -23,6 +23,8 @@
   -->
   <ItemGroup Condition="$(RuntimeIdentifier.StartsWith('linux'))">
     <!--<LinkerArg Include="-lstdc++" />-->
+    <LinkerArg Include="-L/usr/lib/aarch64-linux-gnu" />
     <ExtraLinkerArg Include="-lstdc++" />
+
   </ItemGroup>
 </Project>
