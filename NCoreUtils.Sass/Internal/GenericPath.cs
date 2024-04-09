@@ -198,7 +198,7 @@ namespace NCoreUtils.Sass.Internal
             return hashCode.ToHashCode();
         }
 
-        public Enumerator GetEnumerator()
+        public readonly Enumerator GetEnumerator()
             => new Enumerator(_source, _segmentData ?? _noSegments);
 
         public string ToString(char separator)
@@ -236,7 +236,11 @@ namespace NCoreUtils.Sass.Internal
                     {
                         builder.Append(separator);
                     }
+#if NETSTANDARD2_1 || NET8_0_OR_GREATER
                     builder.Append(data.Slice(pos, len));
+#else
+                    builder.Append(data.Slice(pos, len).ToString());
+#endif
                 }
                 return builder.ToString();
             }
@@ -259,7 +263,7 @@ namespace NCoreUtils.Sass.Internal
                     {
                         builder.Append(separator);
                     }
-#if NETSTANDARD2_1
+#if NETSTANDARD2_1 || NET8_0_OR_GREATER
                     builder.Append(data.Slice(pos, len));
 #else
                     builder.Append(data.Slice(pos, len).ToString());
