@@ -12,4 +12,5 @@ COPY ./NuGet.Config ./
 COPY ./NCoreUtils.Sass ./NCoreUtils.Sass/
 COPY ./NCoreUtils.Sass.MSBuild.Runner ./NCoreUtils.Sass.MSBuild.Runner/
 ARG RID=linux-x64
-RUN dotnet publish -c Release -o /tmp/runner -r $RID --self-contained -p LibSassStaticLibPath=/usr/src/libsass/lib/libsass.a ./NCoreUtils.Sass.MSBuild.Runner/NCoreUtils.Sass.MSBuild.Runner.csproj
+RUN dotnet restore -r $RID ./NCoreUtils.Sass.MSBuild.Runner/NCoreUtils.Sass.MSBuild.Runner.csproj
+RUN dotnet publish --no-restore -c Release -o /tmp/runner -r $RID --self-contained -p LibSassStaticLibPath=/usr/src/libsass/lib/libsass.a ./NCoreUtils.Sass.MSBuild.Runner/NCoreUtils.Sass.MSBuild.Runner.csproj

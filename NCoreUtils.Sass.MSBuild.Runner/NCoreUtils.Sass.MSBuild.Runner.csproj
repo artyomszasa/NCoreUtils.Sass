@@ -4,7 +4,6 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
     <RootNamespace>NCoreUtils.Sass</RootNamespace>
     <PublishAot>true</PublishAot>
     <InvariantGlobalization>true</InvariantGlobalization>
@@ -20,7 +19,8 @@
 
   <!-- LINUX ONLY ************************************************************************************************** -->
   <PropertyGroup Condition="$(RuntimeIdentifier.StartsWith('linux'))">
-    <CppCompilerAndLinker>g++</CppCompilerAndLinker>
+    <CppCompilerAndLinker Condition="!$(RuntimeIdentifier.Contains('aarch64'))">g++</CppCompilerAndLinker>
+    <CppCompilerAndLinker Condition="$(RuntimeIdentifier.Contains('arm64'))">aarch64-linux-gnu-g++</CppCompilerAndLinker>
     <LinkStandardCPlusPlusLibrary>true</LinkStandardCPlusPlusLibrary>
   </PropertyGroup>
   <ItemGroup Condition="$(RuntimeIdentifier.StartsWith('linux'))">
@@ -41,15 +41,17 @@
   <Target Name="RemoveDynamicLibStdCpp">
     <ItemGroup>
       <LinkerArg Remove="-lstdc++" />
+      <LinkerArg Remove="--target=aarch64-linux-gnu" />
     </ItemGroup>
     <Message Text="@(LinkerArg)" />
   </Target>
 
   <!-- adds static libstdc++.a as NativeLibrary item -->
   <Target Name="GetStaticLibStdCppPath">
-    <Exec Command="g++ -print-file-name=libstdc++.a" ConsoleToMSBuild="true">
+    <Exec Command="$(CppCompilerAndLinker) -print-file-name=libstdc++.a" ConsoleToMSBuild="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="_StaticLibStdCppPath" />
     </Exec>
+    <Message Text="RID = $(RuntimeIdentifier)" Importance="High" />
     <ItemGroup>
       <NativeLibrary Include="$(_StaticLibStdCppPath)" />
     </ItemGroup>

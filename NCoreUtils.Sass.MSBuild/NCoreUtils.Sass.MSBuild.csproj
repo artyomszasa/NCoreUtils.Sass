@@ -1,8 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <LangVersion>12.0</LangVersion>
-    <Nullable>enable</Nullable>
     <!-- Suppresses the warnings about the package not having assemblies in lib/*/.dll.-->
     <NoPackageAnalysis>true</NoPackageAnalysis>
     <!-- Change the default location where NuGet will put the build output -->
@@ -18,6 +16,24 @@
     <None Include="tools/linux-x64/NCoreUtils.Sass.MSBuild.Runner">
       <Pack>true</Pack>
       <PackagePath>tools/linux-x64</PackagePath>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <!-- pack linux-arm64 binary -->
+    <None Include="tools/linux-arm64/NCoreUtils.Sass.MSBuild.Runner">
+      <Pack>true</Pack>
+      <PackagePath>tools/linux-arm64</PackagePath>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <!-- pack osx-x64 binary -->
+    <None Include="tools/osx-x64/NCoreUtils.Sass.MSBuild.Runner">
+      <Pack>true</Pack>
+      <PackagePath>tools/osx-x64</PackagePath>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <!-- pack win-x64 binary -->
+    <None Include="tools/win-x64/NCoreUtils.Sass.MSBuild.Runner.exe">
+      <Pack>true</Pack>
+      <PackagePath>tools/win-x64</PackagePath>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

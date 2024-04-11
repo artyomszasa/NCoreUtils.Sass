@@ -40,7 +40,6 @@ internal static partial class Program
             var res = sassCompiler.CompileFile(options.Source, new SassOptions(
                 includePaths: options.IncludePaths,
                 inputPath: options.Source,
-                // FIXME: parse
                 outputStyle: ParseOutputStyle(options.OutputStyle ?? "compressed"),
                 outputPath: options.Target,
                 sourceComments: false,
