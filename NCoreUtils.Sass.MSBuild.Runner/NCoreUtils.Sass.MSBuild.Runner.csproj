@@ -1,4 +1,5 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project>
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
@@ -6,7 +7,7 @@
     <Nullable>enable</Nullable>
     <RootNamespace>NCoreUtils.Sass</RootNamespace>
     <PublishAot>true</PublishAot>
-    <!-- <CppCompilerAndLinker>g++</CppCompilerAndLinker> -->
+    <InvariantGlobalization>true</InvariantGlobalization>
     <LibSassStaticLibPath Condition=" '$(LibSassStaticLibPath)' == '' And  $(RuntimeIdentifier.StartsWith('linux'))">/usr/lib/x86_64-linux-gnu/libsass.a</LibSassStaticLibPath>
   </PropertyGroup>
   <ItemGroup>
@@ -16,15 +17,42 @@
     <DirectPInvoke Include="sass" />
     <NativeLibrary Include="$(LibSassStaticLibPath)" />
   </ItemGroup>
-  <!--
-  <ItemGroup Condition="$(RuntimeIdentifier.StartsWith('win'))">
-    <NativeLibrary Include="sass.lib"  />
-  </ItemGroup>
-  -->
-  <ItemGroup Condition="$(RuntimeIdentifier.StartsWith('linux'))">
-    <!--<LinkerArg Include="-lstdc++" />-->
-    <LinkerArg Include="-L/usr/lib/aarch64-linux-gnu" />
-    <ExtraLinkerArg Include="-lstdc++" />
 
+  <!-- LINUX ONLY ************************************************************************************************** -->
+  <PropertyGroup Condition="$(RuntimeIdentifier.StartsWith('linux'))">
+    <CppCompilerAndLinker>g++</CppCompilerAndLinker>
+    <LinkStandardCPlusPlusLibrary>true</LinkStandardCPlusPlusLibrary>
+  </PropertyGroup>
+  <ItemGroup Condition="$(RuntimeIdentifier.StartsWith('linux'))">
+    <!-- HACK: passes "-static-libgcc -static-libstdc++" before other NativeLibrary items -->
+    <NativeLibrary Include="-static-libgcc -static-libstdc++" />
   </ItemGroup>
+  <!-- ************************************************************************************************************* -->
+
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+
+  <!-- LINUX ONLY ************************************************************************************************** -->
+  <PropertyGroup Condition="$(RuntimeIdentifier.StartsWith('linux'))">
+    <IlcDynamicBuildPropertyDependencies>$(IlcDynamicBuildPropertyDependencies);GetStaticLibStdCppPath</IlcDynamicBuildPropertyDependencies>
+    <LinkNativeDependsOn>$(LinkNativeDependsOn);RemoveDynamicLibStdCpp</LinkNativeDependsOn>
+  </PropertyGroup>
+
+  <!-- removes dynamic libstdc++.so from LinkerArg items -->
+  <Target Name="RemoveDynamicLibStdCpp">
+    <ItemGroup>
+      <LinkerArg Remove="-lstdc++" />
+    </ItemGroup>
+    <Message Text="@(LinkerArg)" />
+  </Target>
+
+  <!-- adds static libstdc++.a as NativeLibrary item -->
+  <Target Name="GetStaticLibStdCppPath">
+    <Exec Command="g++ -print-file-name=libstdc++.a" ConsoleToMSBuild="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="_StaticLibStdCppPath" />
+    </Exec>
+    <ItemGroup>
+      <NativeLibrary Include="$(_StaticLibStdCppPath)" />
+    </ItemGroup>
+  </Target>
+  <!-- ************************************************************************************************************* -->
 </Project>

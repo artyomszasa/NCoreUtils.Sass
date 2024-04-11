@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0.203-bookworm-slim
+FROM --platform=$BUILDPLATFORM europe-west1-docker.pkg.dev/hosting-666/dotnet/sdk:8.0.203-bullseye-slim-amd64
 RUN apt update && apt install -y build-essential clang git zlib1g-dev
 RUN git clone https://github.com/sass/libsass.git /usr/src/libsass
 
