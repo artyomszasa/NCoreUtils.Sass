@@ -1,8 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net8.0;net6.0;netstandard2.1;netstandard2.0</TargetFrameworks>
+    <!-- <TargetFrameworks>net10.0;net8.0;net6.0;netstandard2.1;netstandard2.0</TargetFrameworks> -->
+    <TargetFrameworks>net10.0;net8.0</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Version>8.0.0-rc01</Version>
+    <Version>10.0.0-rc00</Version>
+  </PropertyGroup>
+  <PropertyGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net7.0'))">
+    <DefineConstants>$(DefineConstants);USE_LIBRARY_IMPORT</DefineConstants>
+    <UseLibraryImport>true</UseLibraryImport>
   </PropertyGroup>
   <!--
   <ItemGroup>
@@ -47,7 +52,17 @@
     <PackageReference Include="Microsoft.Extensions.Primitives" Version="8.0.0" />
     <PackageReference Include="NCoreUtils.Extensions.Memory" Version="8.0.0" />
   </ItemGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' != 'net8.0' And '$(TargetFramework)' != 'net6.0' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net10.0' ">
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="10.0.0" />
+    <PackageReference Include="NCoreUtils.Extensions.Memory" Version="10.0.0" />
+  </ItemGroup>
+  <ItemGroup Condition=" '$(TargetFramework)' != 'net10.0' And '$(TargetFramework)' != 'net8.0' And '$(TargetFramework)' != 'net6.0' ">
     <Compile Remove="Internal\Interop.Resolver.cs" />
+  </ItemGroup>
+  <ItemGroup Condition=" '$(UseLibraryImport)' != 'true' ">
+    <Compile Remove="Internal\Interop.LibraryImport.cs" />
+  </ItemGroup>
+  <ItemGroup Condition=" '$(UseLibraryImport)' == 'true' ">
+    <Compile Remove="Internal\Interop.DllImport.cs" />
   </ItemGroup>
 </Project>

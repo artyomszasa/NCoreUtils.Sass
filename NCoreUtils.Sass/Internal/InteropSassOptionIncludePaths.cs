@@ -30,12 +30,12 @@ public readonly struct InteropSassOptionIncludePaths : IReadOnlyList<string>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool MoveNext()
         {
-            var len = Interop.sass_option_get_include_path_size(_options.DangerousGetHandle());
+            var len = Interop.sass_option_get_include_path_size(_options);
             var i = _index + 1;
             if (i < len)
             {
                 _index = i;
-                _current = Interop.ReadUtf8String(Interop.sass_option_get_include_path(_options.DangerousGetHandle(), i));
+                _current = Interop.sass_option_get_include_path(_options, i);
                 return true;
             }
             _index = len;
@@ -55,7 +55,7 @@ public readonly struct InteropSassOptionIncludePaths : IReadOnlyList<string>
     public int Count
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => Interop.sass_option_get_include_path_size(_options.DangerousGetHandle());
+        get => Interop.sass_option_get_include_path_size(_options);
     }
 
     public string this[int index]
@@ -67,7 +67,7 @@ public readonly struct InteropSassOptionIncludePaths : IReadOnlyList<string>
             {
                 throw new ArgumentOutOfRangeException(nameof(index));
             }
-            return Interop.ReadUtf8String(Interop.sass_option_get_include_path(_options.DangerousGetHandle(), index));
+            return Interop.sass_option_get_include_path(_options, index);
         }
     }
 
@@ -84,8 +84,7 @@ public readonly struct InteropSassOptionIncludePaths : IReadOnlyList<string>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Add(string includePath)
     {
-        var options = _options;
-        Interop.PassUtf8String(includePath, ptr => Interop.sass_option_push_include_path(options.DangerousGetHandle(), ptr));
+        Interop.sass_option_push_include_path(_options, includePath);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

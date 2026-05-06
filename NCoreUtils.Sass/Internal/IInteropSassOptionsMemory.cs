@@ -4,7 +4,7 @@ namespace NCoreUtils.Sass.Internal;
 
 public interface IInteropSassOptionsMemory : IDisposable
 {
-    IntPtr PinIndentString(string input);
+    void UpdateIndent(string indent, Action<PinnableUtf8String> action);
 
-    IntPtr PinLineFeedString(string input);
+    void UpdateLineFeed(string lineFeed, Action<PinnableUtf8String> action);
 }

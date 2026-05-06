@@ -7,16 +7,36 @@ using Microsoft.Extensions.Primitives;
 
 namespace NCoreUtils.Sass.Internal;
 
+internal readonly struct SegmentRange(int position, int length)
+{
+    public int Position { get; } = position;
+
+    public int Length { get; } = length;
+
+    public void Deconstruct(out int position, out int length)
+    {
+        position = Position;
+        length = Length;
+    }
+}
+
 public readonly struct GenericPath : IEquatable<GenericPath>, IReadOnlyList<StringSegment>
 {
-    [method: MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public struct Enumerator(string source, IReadOnlyList<(int Position, int Length)> segmentData) : IEnumerator<StringSegment>
+    public struct Enumerator : IEnumerator<StringSegment>
     {
-        private readonly string _source = source;
+        private readonly string _source;
 
-        private readonly IReadOnlyList<(int Position, int Length)> _segmentData = segmentData;
+        private readonly SegmentRange[] _segmentData;
 
-        private int _index = -1;
+        private int _index;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal Enumerator(string source, SegmentRange[] segmentData)
+        {
+            _source = source;
+            _segmentData = segmentData;
+            _index = -1;
+        }
 
         readonly object IEnumerator.Current => Current;
 
@@ -27,9 +47,10 @@ public readonly struct GenericPath : IEquatable<GenericPath>, IReadOnlyList<Stri
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool MoveNext()
         {
-            if (_index + 1 < _segmentData.Count)
+            var index = _index + 1;
+            if (index < _segmentData.Length)
             {
-                ++_index;
+                _index = index;
                 Current = new StringSegment(_source, _segmentData[_index].Position, _segmentData[_index].Length);
                 return true;
             }
@@ -43,14 +64,12 @@ public readonly struct GenericPath : IEquatable<GenericPath>, IReadOnlyList<Stri
         }
     }
 
-    private static readonly (int Position, int Length)[] _noSegments = [];
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsDelimiter(char ch)
         => ch == '/' || ch == '\\';
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static (IReadOnlyList<(int Position, int Length)> segments, bool isAbsolute) GetSegments(string source)
+    private static (SegmentRange[] segments, bool isAbsolute) GetSegments(string source)
     {
         var isAbsolute = false;
         var input = source.AsSpan();
@@ -62,7 +81,7 @@ public readonly struct GenericPath : IEquatable<GenericPath>, IReadOnlyList<Stri
                 ++counter;
             }
         }
-        var segments = new List<(int Position, int Length)>(counter + 1);
+        var segments = new ArrayBuilder<SegmentRange>(counter + 1);
         var s = 0;
         bool first = true;
         for (var i = 0; i < input.Length; ++i)
@@ -82,7 +101,7 @@ public readonly struct GenericPath : IEquatable<GenericPath>, IReadOnlyList<Stri
                 // skip empty segments
                 if (s != i)
                 {
-                    segments.Add((s, i - s));
+                    segments.Add(new(s, i - s));
                     s = i + 1;
                 }
             }
@@ -90,14 +109,14 @@ public readonly struct GenericPath : IEquatable<GenericPath>, IReadOnlyList<Stri
         // handle last segment
         if (s < input.Length)
         {
-            segments.Add((s, input.Length - s));
+            segments.Add(new (s, input.Length - s));
         }
-        return (segments, isAbsolute);
+        return (segments.ToArray(), isAbsolute);
     }
 
     private readonly string _source;
 
-    private readonly IReadOnlyList<(int Position, int Length)> _segmentData;
+    private readonly SegmentRange[] _segmentData;
 
     private readonly bool _isAbsolutePath;
 
@@ -105,7 +124,7 @@ public readonly struct GenericPath : IEquatable<GenericPath>, IReadOnlyList<Stri
     {
         // NOTE: if source is not null then segmentData is neither null.
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => string.IsNullOrEmpty(_source) || _segmentData.Count == 0;
+        get => string.IsNullOrEmpty(_source) || _segmentData.Length == 0;
     }
 
     public string Raw
@@ -117,7 +136,7 @@ public readonly struct GenericPath : IEquatable<GenericPath>, IReadOnlyList<Stri
     public int Count
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => _segmentData?.Count ?? 0;
+        get => _segmentData?.Length ?? 0;
     }
 
     public StringSegment this[int index]
@@ -191,7 +210,7 @@ public readonly struct GenericPath : IEquatable<GenericPath>, IReadOnlyList<Stri
     }
 
     public Enumerator GetEnumerator()
-        => new(_source, _segmentData ?? _noSegments);
+        => new(_source, _segmentData ?? []);
 
     public string ToString(char separator)
     {

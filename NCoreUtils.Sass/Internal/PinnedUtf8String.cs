@@ -1,9 +1,68 @@
 using System;
 using System.Buffers;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Threading;
 
 namespace NCoreUtils.Sass.Internal;
 
+public sealed class PinnableUtf8String : IDisposable
+{
+    private byte[]? _data;
+
+    private readonly int _size;
+
+    public GCHandle _handle;
+
+    public PinnableUtf8String(string source)
+    {
+        _data = ArrayPool<byte>.Shared.Rent(Interop._utf8.GetByteCount(source) + 1);
+        var size = Interop._utf8.GetBytes(source, _data);
+        _size = size + 1;
+        _data[size] = 0;
+    }
+
+    ~PinnableUtf8String()
+        => Dispose(false);
+
+    public nint Pin()
+    {
+        Debug.Assert(!_handle.IsAllocated);
+        return (_handle = GCHandle.Alloc(_data, GCHandleType.Pinned)).AddrOfPinnedObject();
+    }
+
+    public void Unpin()
+    {
+        Debug.Assert(_handle.IsAllocated);
+        _handle.Free();
+    }
+
+    private void Dispose(bool disposing)
+    {
+        if (_handle.IsAllocated)
+        {
+            _handle.Free();
+        }
+        if (disposing)
+        {
+            if (Interlocked.CompareExchange(ref _data, null, _data) is byte[] data)
+            {
+                ArrayPool<byte>.Shared.Return(data);
+            }
+        }
+    }
+
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
+
+    public override string ToString()
+        => _data is byte[] data ? Interop._utf8.GetString(data, 0, _size) : "<disposed>";
+}
+
+[Obsolete]
 public sealed class PinnedUtf8String : IDisposable
 {
     private int _isDisposed;
@@ -13,29 +72,17 @@ public sealed class PinnedUtf8String : IDisposable
     private readonly MemoryHandle _handle;
 
     public unsafe IntPtr Pointer
-    {
-        get
-        {
-            if (0 != Interlocked.CompareExchange(ref _isDisposed, 0, 0))
-            {
-                throw new ObjectDisposedException(nameof(PinnedUtf8String));
-            }
-            return (IntPtr)_handle.Pointer;
-        }
-    }
+        => 0 != Interlocked.CompareExchange(ref _isDisposed, 0, 0)
+            ? throw new ObjectDisposedException(nameof(PinnedUtf8String))
+            : (IntPtr)_handle.Pointer;
 
-    public unsafe PinnedUtf8String(string source)
+    public PinnedUtf8String(string source)
     {
-        var maxLength = Interop._utf8.GetMaxByteCount(source.Length) + 1;
-        _owner = MemoryPool<byte>.Shared.Rent(maxLength);
+        _owner = MemoryPool<byte>.Shared.Rent(Interop._utf8.GetByteCount(source) + 1);
         var memory = _owner.Memory;
-        _handle = _owner.Memory.Pin();
-        int size;
-        fixed (char* psource = source)
-        {
-            size = Interop._utf8.GetBytes(psource, source.Length, (byte*)_handle.Pointer, maxLength);
-        }
-        ((byte*)_handle.Pointer)[size] = 0;
+        _handle = memory.Pin();
+        var size = Interop._utf8.GetBytes(source, memory.Span);
+        memory.Span[size] = 0;
     }
 
     ~PinnedUtf8String()
