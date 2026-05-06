@@ -31,6 +31,12 @@
 
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 
+  <!-- OSX ONLY **************************************************************************************************** -->
+  <ItemGroup Condition="$(RuntimeIdentifier.StartsWith('osx'))">
+    <LinkerArg Include="-lc++" />
+  </ItemGroup>
+  <!-- ************************************************************************************************************* -->
+
   <!-- LINUX ONLY ************************************************************************************************** -->
   <PropertyGroup Condition="$(RuntimeIdentifier.StartsWith('linux'))">
     <IlcDynamicBuildPropertyDependencies>$(IlcDynamicBuildPropertyDependencies);GetStaticLibStdCppPath</IlcDynamicBuildPropertyDependencies>

@@ -28,11 +28,20 @@ public class SassInvoker
         bool generateSourceMap = false)
     {
         ToolsPath = toolsPath;
-        ExecutablePath = RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
-            ? Path.Combine(ToolsPath, "linux-x64", "NCoreUtils.Sass.MSBuild.Runner")
-            : RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
-                ? Path.Combine(ToolsPath, "osx-x64", "NCoreUtils.Sass.MSBuild.Runner")
-                : Path.Combine(ToolsPath, "win-x64", "NCoreUtils.Sass.MSBuild.Runner.exe");
+        ExecutablePath = RuntimeInformation.OSArchitecture switch
+        {
+            Architecture.X64 => RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+                ? Path.Combine(ToolsPath, "linux-x64", "NCoreUtils.Sass.MSBuild.Runner")
+                : RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+                    ? Path.Combine(ToolsPath, "osx-x64", "NCoreUtils.Sass.MSBuild.Runner")
+                    : Path.Combine(ToolsPath, "win-x64", "NCoreUtils.Sass.MSBuild.Runner.exe"),
+            Architecture.Arm64 => RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+                ? Path.Combine(ToolsPath, "linux-arm64", "NCoreUtils.Sass.MSBuild.Runner")
+                : RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+                    ? Path.Combine(ToolsPath, "osx-arm64", "NCoreUtils.Sass.MSBuild.Runner")
+                    : Path.Combine(ToolsPath, "win-arm64", "NCoreUtils.Sass.MSBuild.Runner.exe"),
+            var arch => throw new InvalidOperationException($"Unsupported architecture: {arch}")
+        };
         Precision = precision;
         IncludePaths = includePaths ?? [];
         OutputStyle = outputStyle;

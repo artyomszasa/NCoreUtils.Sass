@@ -30,6 +30,12 @@
       <PackagePath>tools/osx-x64</PackagePath>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <!-- pack osx-arm64 binary -->
+    <None Include="tools/osx-arm64/NCoreUtils.Sass.MSBuild.Runner">
+      <Pack>true</Pack>
+      <PackagePath>tools/osx-arm64</PackagePath>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <!-- pack win-x64 binary -->
     <None Include="tools/win-x64/NCoreUtils.Sass.MSBuild.Runner.exe">
       <Pack>true</Pack>
